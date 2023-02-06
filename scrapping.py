@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import boto3
 from bs4 import BeautifulSoup
 import requests
 import joblib
@@ -133,3 +134,13 @@ kekka = pd.DataFrame(all_list_filtered,columns=["法人名","職種","給与情�
 
 
 kekka.to_csv('first.csv',encoding="utf-8-sig")
+
+
+
+print('データの格納')
+bucket_name = 'monthly-scraping'
+s3_key = 'monthly_data/{}年/{}月/媒体名.csv'.format(year,month)
+s3 = boto3.resource('s3') 
+
+s3_obj = s3.Object(bucket_name,s3_key)
+s3_obj.put(Body=kekka.to_csv(None).encode('utf_8_sig'))
