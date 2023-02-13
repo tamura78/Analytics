@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import boto3
 from bs4 import BeautifulSoup
 import requests
 import joblib
@@ -14,14 +18,14 @@ url = "https://www.baitoru.com/kanto/jlist/tokyo/conveni/"
 res=requests.get(url)
 soup=BeautifulSoup(res.text,'html.parser')
 total_num_str_pre = soup.find(id = "js-job-count").get_text()
-#print(total_num_str_pre)
+print(total_num_str_pre)
 
 total_num_str = total_num_str_pre.replace(",","")
 total_num = int(total_num_str)
-#print(total_num)
+print(total_num)
 
 total_page_num = total_num // 20 + 1#注釈を参照のこと
-#print(total_page_num)
+print(total_page_num)
 
 url_list_001 = list()
 url = "https://www.baitoru.com/kanto/jlist/tokyo/conveni/"
@@ -32,7 +36,7 @@ for i in range(2, total_page_num+1):
 		#残りのページについては、for文を利用した取得を行います。
     url_list_001.append(url_key)
     
-#print(url_list_001)
+print(url_list_001)
 
 def joblib_get_url(i):
     url_list_pre = list()
@@ -126,4 +130,11 @@ for n in tqdm(range(0, joblib_num)):
 all_list_filtered = [x for x in all_list if x is not None]
 kekka = pd.DataFrame(all_list_filtered,columns=["法人名","職種","給与情報"])
 
-kekka.to_csv('scraping.csv',encoding="utf-8-sig")
+#kekka.to_csv('scraping.csv',encoding="utf-8-sig")
+
+print('データの格納')
+bucket_name = 'monthly-scraping'
+s3_key = 'monthly_data/{}年/{}月/バイトル.csv'.format(year,month)
+s3 = boto3.resource('s3') 
+s3_obj = s3.Object(bucket_name,s3_key)
+s3_obj.put(Body=kekka.to_csv(None).encode('utf_8_sig'))
